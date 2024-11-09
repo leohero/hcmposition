@@ -25,8 +25,8 @@ function getRandomPointInRadius(lat, lon, radius) {
     const newLon = lon + deltaLon * Math.cos(randomAngle);
 
     return {
-        lat: newLat.toSting(),
-        lng: newLng.toSting()
+        lat: newLat.toString(),
+        lng: newLon.toString()
     };
 }
 
@@ -53,12 +53,12 @@ if (!body.result.success) {
         method: $request.method,
         headers: $request.headers,
         body: JSON.stringify(newRequestBody),
-    }).then(newResponse = >{
+    }).then(newResponse =>{
         $done({
             body: newResponse.body
         }); // 返回新响应
     }).
-    catch(err = >{
+    catch(err =>{
         console.error('重试请求失败:', err);
         $done({
             body: JSON.stringify({
