@@ -48,23 +48,15 @@ if (!body.result.success) {
         body: JSON.stringify(newRequestBody),
     }).then(newResponse =>{
         console.log(newResponse.body)
-        $done({
-            body: newResponse.body
-        }); // 返回新响应
+        $done(newResponse.body); // 返回新响应
     }).
     catch(err =>{
         console.error('重试请求失败:', err);
-        $done({
-            body: JSON.stringify({
-                result: false,
-                error: "retry failed"
-            })
+        $done(newResponse.body)
         });
     });
 } else {
-    $done({
-        body: JSON.stringify(body)
-    }); // 如果 result 为 true，则直接返回响应
+    $done(newResponse.body); // 如果 result 为 true，则直接返回响应
 }
 
 
