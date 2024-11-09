@@ -5,14 +5,6 @@ const body = JSON.parse($response.body); // 获取响应体
 const originalLat = 39.888073;
 const originalLng = 116.350838;
 const radius = 50;
-// const crypto = require('crypto');
-
-// function getMd5(s) {
-//     const hash = crypto.createHash('md5');
-//     hash.update(s, 'utf-8');
-//     return hash.digest('hex');
-// }
-
 // 定义随机生成新坐标的方法
 function getRandomPointInRadius(lat, lon, radius) {
     const earthRadius = 6371000; // 地球半径，单位为米
@@ -36,8 +28,8 @@ if (!body.result.success) {
     const newCoords = getRandomPointInRadius(originalLat, originalLng, radius);
     // 获取当前时间戳（毫秒）
     const timestamp = Math.round(Date.now());
-    const hash = md5(newCoords.lat + newCoords.lng + accuracy + timestamp.toString() + "hcm cloud")
-    // 构造新的请求体
+    const hash = MD5(newCoords.lat + newCoords.lng + accuracy + timestamp.toString() + "hcm cloud")
+ // 构造新的请求体
     const newRequestBody = {
         "latitude": newCoords.lat,
         "longitude": newCoords.lng,
@@ -45,7 +37,8 @@ if (!body.result.success) {
         "timestamp": timestamp,
         "hash": hash
     };
-    console.log(newRequestBody);
+      console.log(newCoords.lat + newCoords.lng + accuracy + timestamp.toString() + "hcm cloud");
+     console.log(newRequestBody);
 
     // 重新发起请求
     $task.fetch({
@@ -54,6 +47,7 @@ if (!body.result.success) {
         headers: $request.headers,
         body: JSON.stringify(newRequestBody),
     }).then(newResponse =>{
+        console.log(newResponse.body)
         $done({
             body: newResponse.body
         }); // 返回新响应
@@ -74,130 +68,4 @@ if (!body.result.success) {
 }
 
 
-function md5(string) {
-  function RotateLeft(lValue, iShiftBits) {
-    return (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits));
-  }
-
-  function AddUnsigned(lX, lY) {
-    var lX4, lY4, lX8, lY8, lResult;
-    lX8 = (lX & 0x80000000);
-    lY8 = (lY & 0x80000000);
-    lX4 = (lX & 0x40000000);
-    lY4 = (lY & 0x40000000);
-    lResult = (lX & 0x3FFFFFFF) + (lY & 0x3FFFFFFF);
-    if (lX4 & lY4) {
-      return (lResult ^ 0x80000000 ^ lX8 ^ lY8);
-    }
-    if (lX4 | lY4) {
-      if (lResult & 0x40000000) {
-        return (lResult ^ 0xC0000000 ^ lX8 ^ lY8);
-      } else {
-        return (lResult ^ 0x40000000 ^ lX8 ^ lY8);
-      }
-    } else {
-      return (lResult ^ lX8 ^ lY8);
-    }
-  }
-
-  function F(x, y, z) { return (x & y) | ((~x) & z); }
-  function G(x, y, z) { return (x & z) | (y & (~z)); }
-  function H(x, y, z) { return (x ^ y ^ z); }
-  function I(x, y, z) { return (y ^ (x | (~z))); }
-
-  function FF(a, b, c, d, x, s, ac) {
-    a = AddUnsigned(a, AddUnsigned(AddUnsigned(F(b, c, d), x), ac));
-    return AddUnsigned(RotateLeft(a, s), b);
-  }
-
-  function GG(a, b, c, d, x, s, ac) {
-    a = AddUnsigned(a, AddUnsigned(AddUnsigned(G(b, c, d), x), ac));
-    return AddUnsigned(RotateLeft(a, s), b);
-  }
-
-  function HH(a, b, c, d, x, s, ac) {
-    a = AddUnsigned(a, AddUnsigned(AddUnsigned(H(b, c, d), x), ac));
-    return AddUnsigned(RotateLeft(a, s), b);
-  }
-
-  function II(a, b, c, d, x, s, ac) {
-    a = AddUnsigned(a, AddUnsigned(AddUnsigned(I(b, c, d), x), ac));
-    return AddUnsigned(RotateLeft(a, s), b);
-  }
-
-  function ConvertToWordArray(string) {
-    var lWordCount;
-    var lMessageLength = string.length;
-    var lNumberOfWordsTempOne = lMessageLength + 8;
-    var lNumberOfWordsTempTwo = (lNumberOfWordsTempOne - (lNumberOfWordsTempOne % 64)) / 64;
-    var lNumberOfWords = (lNumberOfWordsTempTwo + 1) * 16;
-    var lWordArray = Array(lNumberOfWords - 1);
-    var lBytePosition = 0;
-    var lByteCount = 0;
-    while (lByteCount < lMessageLength) {
-      lWordCount = (lByteCount - (lByteCount % 4)) / 4;
-      lBytePosition = (lByteCount % 4) * 8;
-      lWordArray[lWordCount] = (lWordArray[lWordCount] | (string.charCodeAt(lByteCount) << lBytePosition));
-      lByteCount++;
-    }
-    lWordArray[(lByteCount - (lByteCount % 4)) / 4] |= (0x80 << ((lByteCount % 4) * 8));
-    lWordArray[lNumberOfWords - 2] = lMessageLength << 3;
-    lWordArray[lNumberOfWords - 1] = lMessageLength >>> 29;
-    return lWordArray;
-  }
-
-  function WordToHex(lValue) {
-    var WordToHexValue = "", WordToHexValueTemp = "", lByte, lCount;
-    for (lCount = 0; lCount <= 3; lCount++) {
-      lByte = (lValue >>> (lCount * 8)) & 255;
-      WordToHexValueTemp = "0" + lByte.toString(16);
-      WordToHexValue += WordToHexValueTemp.substr(WordToHexValueTemp.length - 2, 2);
-    }
-    return WordToHexValue;
-  }
-
-  var x = Array();
-  var k, AA, BB, CC, DD, a, b, c, d;
-  var S11 = 7, S12 = 12, S13 = 17, S14 = 22;
-  var S21 = 5, S22 = 9, S23 = 14, S24 = 20;
-  var S31 = 4, S32 = 11, S33 = 16, S34 = 23;
-  var S41 = 6, S42 = 10, S43 = 15, S44 = 21;
-
-  string = unescape(encodeURIComponent(string));  // 处理 Unicode 字符串
-  x = ConvertToWordArray(string);
-
-  a = 0x67452301;
-  b = 0xEFCDAB89;
-  c = 0x98BADCFE;
-  d = 0x10325476;
-
-  for (k = 0; k < x.length; k += 16) {
-    AA = a;
-    BB = b;
-    CC = c;
-    DD = d;
-    a = FF(a, b, c, d, x[k + 0], S11, 0xD76AA478);
-    d = FF(d, a, b, c, x[k + 1], S12, 0xE8C7B756);
-    c = FF(c, d, a, b, x[k + 2], S13, 0x242070DB);
-    b = FF(b, c, d, a, x[k + 3], S14, 0xC1BDCEEE);
-    a = GG(a, b, c, d, x[k + 4], S21, 0xF57C0FAF);
-    d = GG(d, a, b, c, x[k + 5], S22, 0x4787C62A);
-    c = GG(c, d, a, b, x[k + 6], S23, 0xA8304613);
-    b = GG(b, c, d, a, x[k + 7], S24, 0xFD469501);
-    a = HH(a, b, c, d, x[k + 8], S31, 0x698098D8);
-    d = HH(d, a, b, c, x[k + 9], S32, 0x8B44F7AF);
-    c = HH(c, d, a, b, x[k + 10], S33, 0xFFFF5BB1);
-    b = HH(b, c, d, a, x[k + 11], S34, 0x895CD7BE);
-    a = II(a, b, c, d, x[k + 12], S41, 0x6B901122);
-    d = II(d, a, b, c, x[k + 13], S42, 0xFD987193);
-    c = II(c, d, a, b, x[k + 14], S43, 0xA679438E);
-    b = II(b, c, d, a, x[k + 15], S44, 0x49B40821);
-    a = AddUnsigned(a, AA);
-    b = AddUnsigned(b, BB);
-    c = AddUnsigned(c, CC);
-    d = AddUnsigned(d, DD);
-  }
-
-  var temp = WordToHex(a) + WordToHex(b) + WordToHex(c) + WordToHex(d);
-  return temp.toLowerCase();
-}
+var MD5 = function(d){result = M(V(Y(X(d),8*d.length)));return result.toLowerCase()};function M(d){for(var _,m="0123456789ABCDEF",f="",r=0;r<d.length;r++)_=d.charCodeAt(r),f+=m.charAt(_>>>4&15)+m.charAt(15&_);return f}function X(d){for(var _=Array(d.length>>2),m=0;m<_.length;m++)_[m]=0;for(m=0;m<8*d.length;m+=8)_[m>>5]|=(255&d.charCodeAt(m/8))<<m%32;return _}function V(d){for(var _="",m=0;m<32*d.length;m+=8)_+=String.fromCharCode(d[m>>5]>>>m%32&255);return _}function Y(d,_){d[_>>5]|=128<<_%32,d[14+(_+64>>>9<<4)]=_;for(var m=1732584193,f=-271733879,r=-1732584194,i=271733878,n=0;n<d.length;n+=16){var h=m,t=f,g=r,e=i;f=md5_ii(f=md5_ii(f=md5_ii(f=md5_ii(f=md5_hh(f=md5_hh(f=md5_hh(f=md5_hh(f=md5_gg(f=md5_gg(f=md5_gg(f=md5_gg(f=md5_ff(f=md5_ff(f=md5_ff(f=md5_ff(f,r=md5_ff(r,i=md5_ff(i,m=md5_ff(m,f,r,i,d[n+0],7,-680876936),f,r,d[n+1],12,-389564586),m,f,d[n+2],17,606105819),i,m,d[n+3],22,-1044525330),r=md5_ff(r,i=md5_ff(i,m=md5_ff(m,f,r,i,d[n+4],7,-176418897),f,r,d[n+5],12,1200080426),m,f,d[n+6],17,-1473231341),i,m,d[n+7],22,-45705983),r=md5_ff(r,i=md5_ff(i,m=md5_ff(m,f,r,i,d[n+8],7,1770035416),f,r,d[n+9],12,-1958414417),m,f,d[n+10],17,-42063),i,m,d[n+11],22,-1990404162),r=md5_ff(r,i=md5_ff(i,m=md5_ff(m,f,r,i,d[n+12],7,1804603682),f,r,d[n+13],12,-40341101),m,f,d[n+14],17,-1502002290),i,m,d[n+15],22,1236535329),r=md5_gg(r,i=md5_gg(i,m=md5_gg(m,f,r,i,d[n+1],5,-165796510),f,r,d[n+6],9,-1069501632),m,f,d[n+11],14,643717713),i,m,d[n+0],20,-373897302),r=md5_gg(r,i=md5_gg(i,m=md5_gg(m,f,r,i,d[n+5],5,-701558691),f,r,d[n+10],9,38016083),m,f,d[n+15],14,-660478335),i,m,d[n+4],20,-405537848),r=md5_gg(r,i=md5_gg(i,m=md5_gg(m,f,r,i,d[n+9],5,568446438),f,r,d[n+14],9,-1019803690),m,f,d[n+3],14,-187363961),i,m,d[n+8],20,1163531501),r=md5_gg(r,i=md5_gg(i,m=md5_gg(m,f,r,i,d[n+13],5,-1444681467),f,r,d[n+2],9,-51403784),m,f,d[n+7],14,1735328473),i,m,d[n+12],20,-1926607734),r=md5_hh(r,i=md5_hh(i,m=md5_hh(m,f,r,i,d[n+5],4,-378558),f,r,d[n+8],11,-2022574463),m,f,d[n+11],16,1839030562),i,m,d[n+14],23,-35309556),r=md5_hh(r,i=md5_hh(i,m=md5_hh(m,f,r,i,d[n+1],4,-1530992060),f,r,d[n+4],11,1272893353),m,f,d[n+7],16,-155497632),i,m,d[n+10],23,-1094730640),r=md5_hh(r,i=md5_hh(i,m=md5_hh(m,f,r,i,d[n+13],4,681279174),f,r,d[n+0],11,-358537222),m,f,d[n+3],16,-722521979),i,m,d[n+6],23,76029189),r=md5_hh(r,i=md5_hh(i,m=md5_hh(m,f,r,i,d[n+9],4,-640364487),f,r,d[n+12],11,-421815835),m,f,d[n+15],16,530742520),i,m,d[n+2],23,-995338651),r=md5_ii(r,i=md5_ii(i,m=md5_ii(m,f,r,i,d[n+0],6,-198630844),f,r,d[n+7],10,1126891415),m,f,d[n+14],15,-1416354905),i,m,d[n+5],21,-57434055),r=md5_ii(r,i=md5_ii(i,m=md5_ii(m,f,r,i,d[n+12],6,1700485571),f,r,d[n+3],10,-1894986606),m,f,d[n+10],15,-1051523),i,m,d[n+1],21,-2054922799),r=md5_ii(r,i=md5_ii(i,m=md5_ii(m,f,r,i,d[n+8],6,1873313359),f,r,d[n+15],10,-30611744),m,f,d[n+6],15,-1560198380),i,m,d[n+13],21,1309151649),r=md5_ii(r,i=md5_ii(i,m=md5_ii(m,f,r,i,d[n+4],6,-145523070),f,r,d[n+11],10,-1120210379),m,f,d[n+2],15,718787259),i,m,d[n+9],21,-343485551),m=safe_add(m,h),f=safe_add(f,t),r=safe_add(r,g),i=safe_add(i,e)}return Array(m,f,r,i)}function md5_cmn(d,_,m,f,r,i){return safe_add(bit_rol(safe_add(safe_add(_,d),safe_add(f,i)),r),m)}function md5_ff(d,_,m,f,r,i,n){return md5_cmn(_&m|~_&f,d,_,r,i,n)}function md5_gg(d,_,m,f,r,i,n){return md5_cmn(_&f|m&~f,d,_,r,i,n)}function md5_hh(d,_,m,f,r,i,n){return md5_cmn(_^m^f,d,_,r,i,n)}function md5_ii(d,_,m,f,r,i,n){return md5_cmn(m^(_|~f),d,_,r,i,n)}function safe_add(d,_){var m=(65535&d)+(65535&_);return(d>>16)+(_>>16)+(m>>16)<<16|65535&m}function bit_rol(d,_){return d<<_|d>>>32-_}
